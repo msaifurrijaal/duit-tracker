@@ -16,7 +16,30 @@ function App() {
   const [transactionIn, setTransactionIn] = useState(0);
   const [transactionOut, setTransactionOut] = useState(0);
   const [summarys, setSummarys] = useState<Summary[]>([]);
-  const [listSummarys, setListSummarys] = useState<Summary[]>(summarys);
+
+  useEffect(() => {
+    setMoney(Number(localStorage.getItem("money")) || 0);
+    setIncome(Number(localStorage.getItem("income")) || 0);
+    setSpending(Number(localStorage.getItem("spending")) || 0);
+    setTransactionIn(Number(localStorage.getItem("transactionIn")) || 0);
+    setTransactionOut(Number(localStorage.getItem("transactionOut")) || 0);
+    const storedSummarys = localStorage.getItem("summarys");
+    if (storedSummarys) {
+      setSummarys(JSON.parse(storedSummarys) || []);
+    } else {
+      setSummarys([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("summarys", JSON.stringify(summarys));
+    localStorage.setItem("money", money.toString());
+    localStorage.setItem("income", income.toString());
+    localStorage.setItem("transactionIn", transactionIn.toString());
+    localStorage.setItem("money", money.toString());
+    localStorage.setItem("spending", spending.toString());
+    localStorage.setItem("transactionOut", transactionOut.toString());
+  }, [summarys]);
 
   const addTransaction = (summary: Summary) => {
     setSummarys((prev) => [...prev, summary]);
@@ -30,11 +53,6 @@ function App() {
       setTransactionOut((prev) => prev + 1);
     }
   };
-
-  useEffect(() => {
-    setListSummarys(summarys);
-    setListSummarys((prev) => prev.reverse());
-  }, [summarys]);
 
   return (
     <>
@@ -94,43 +112,46 @@ function App() {
         </div>
 
         <div className="row mt-3">
-          {listSummarys &&
-            listSummarys.map((summary: Summary, index: number) => (
-              <div
-                key={index}
-                className="col-12 d-flex justify-content-between align-items-center mb-2"
-              >
-                <div className="d-flex align-items-center">
-                  <div
+          {summarys &&
+            summarys
+              .slice()
+              .reverse()
+              .map((summary: Summary, index: number) => (
+                <div
+                  key={index}
+                  className="col-12 d-flex justify-content-between align-items-center mb-2"
+                >
+                  <div className="d-flex align-items-center">
+                    <div
+                      className={`${
+                        summary.category === "in"
+                          ? "icon-wrapper-purple"
+                          : "icon-wrapper-pink"
+                      }`}
+                    >
+                      {summary.category === "in" ? (
+                        <i className="bi bi-wallet2"></i>
+                      ) : (
+                        <i className="bi bi-coin"></i>
+                      )}
+                    </div>
+                    <div className="transaction ms-2 d-flex flex-column">
+                      <h6 className="">{summary.description}</h6>
+                      <span className="title title-sm">{summary.date}</span>
+                    </div>
+                  </div>
+
+                  <h5
                     className={`${
                       summary.category === "in"
-                        ? "icon-wrapper-purple"
-                        : "icon-wrapper-pink"
-                    }`}
+                        ? "text-money-in"
+                        : "text-money-out"
+                    } fw-semibold`}
                   >
-                    {summary.category === "in" ? (
-                      <i className="bi bi-wallet2"></i>
-                    ) : (
-                      <i className="bi bi-coin"></i>
-                    )}
-                  </div>
-                  <div className="transaction ms-2 d-flex flex-column">
-                    <h6 className="">{summary.description}</h6>
-                    <span className="title title-sm">{summary.date}</span>
-                  </div>
+                    Rp. {summary.nominal}
+                  </h5>
                 </div>
-
-                <h5
-                  className={`${
-                    summary.category === "in"
-                      ? "text-money-in"
-                      : "text-money-out"
-                  } fw-semibold`}
-                >
-                  Rp. {summary.nominal}
-                </h5>
-              </div>
-            ))}
+              ))}
         </div>
       </div>
     </>
